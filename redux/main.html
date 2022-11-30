@@ -23,6 +23,7 @@
         if (state === undefined) {
           // initial state
           return {
+            mode: "create",
             selectedId: null,
             contents: [
               { id: 0, title: "HTML", description: "HTML is..." },
@@ -34,6 +35,21 @@
 
         if (action.type === "SELECT") {
           newState = Object.assign({}, state, { selectedId: action.id });
+        }
+        if (action.type === "CREATE") {
+          const newContents = [
+            ...state.contents,
+            {
+              id: state.contents.length,
+              title: action.title,
+              description: action.desc,
+            },
+          ];
+          newState = Object.assign({}, state, {
+            mode: "read",
+            selectedId: state.contents.length,
+            contents: newContents,
+          });
         }
         console.log(action, state, newState);
         return newState;
@@ -51,6 +67,7 @@
       }
 
       function toc() {
+        const state = store.getState();
         let i = 0;
         let liTags = "";
         while (i < state.contents.length) {
@@ -80,7 +97,7 @@
       function control() {
         document.querySelector("#control").innerHTML = `
         <ul>
-            <li><a href="/create">create</a></li>
+            <li><a href="/create" onclick="event.preventDefault();">create</a></li>
             <li><input type="button" value="delete" /></li>
         </ul>
         `;
@@ -88,18 +105,43 @@
 
       function article() {
         const state = store.getState();
-        const aTitle = state.contents[state.selectedId]?.title;
-        const aDesc = state.contents[state.selectedId]?.description;
+        const mode = state.mode;
 
-        document.querySelector("#article").innerHTML = `
-        <article>
-            <h2>${aTitle}</h2>
-            <p>${aDesc}</p>
-        </article>
+        if (mode === "create") {
+          document.querySelector("#article").innerHTML = `
+            <article>
+                <form onsubmit="
+                event.preventDefault();
+                var _title = this.title.value;
+                var _desc = this.desc.value;
+                store.dispatch({
+                    type:'CREATE',
+                    title:_title,
+                    desc:_desc
+                })
+                ">
+                    <div><input type="text" name="title" placeholder="title" /></div>
+                    <div><textarea name="desc" placeholder="description"></textarea></div>
+                    <div><input type="submit" /></div>
+                </form>
+            </article>
         `;
+        }
+        if (mode === "read") {
+          const aTitle = state.contents[state.selectedId]?.title;
+          const aDesc = state.contents[state.selectedId]?.description;
+          document.querySelector("#article").innerHTML = `
+            <article>
+                <h2>${aTitle}</h2>
+                <p>${aDesc}</p>
+            </article>
+        `;
+        }
       }
 
+      store.subscribe(toc);
       store.subscribe(article);
+
       subject();
       toc();
       control();
