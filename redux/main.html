@@ -17,18 +17,26 @@
     <div id="toc"></div>
     <div id="control"></div>
     <div id="article"></div>
-
     <script>
       function reducer(state, action) {
+        console.log(state, action);
         if (state === undefined) {
           // initial state
           return {
+            selectedId: null,
             contents: [
-              { id: 1, title: "HTML", description: "HTML is..." },
-              { id: 2, title: "CSS", description: "CSS is..." },
+              { id: 0, title: "HTML", description: "HTML is..." },
+              { id: 1, title: "CSS", description: "CSS is..." },
             ],
           };
         }
+        let newState;
+
+        if (action.type === "SELECT") {
+          newState = Object.assign({}, state, { selectedId: action.id });
+        }
+        console.log(action, state, newState);
+        return newState;
       }
       const store = Redux.createStore(reducer);
       const state = store.getState();
@@ -79,11 +87,19 @@
       }
 
       function article() {
+        const state = store.getState();
+        const aTitle = state.contents[state.selectedId]?.title;
+        const aDesc = state.contents[state.selectedId]?.description;
+
         document.querySelector("#article").innerHTML = `
-        <article>HTML is ...</article>
+        <article>
+            <h2>${aTitle}</h2>
+            <p>${aDesc}</p>
+        </article>
         `;
       }
 
+      store.subscribe(article);
       subject();
       toc();
       control();
