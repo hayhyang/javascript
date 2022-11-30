@@ -23,7 +23,7 @@
         if (state === undefined) {
           // initial state
           return {
-            mode: "create",
+            mode: "welcome",
             selectedId: null,
             contents: [
               { id: 0, title: "HTML", description: "HTML is..." },
@@ -34,7 +34,10 @@
         let newState;
 
         if (action.type === "SELECT") {
-          newState = Object.assign({}, state, { selectedId: action.id });
+          newState = Object.assign({}, state, {
+            selectedId: action.id,
+            mode: "read",
+          });
         }
         if (action.type === "CREATE") {
           const newContents = [
@@ -50,6 +53,19 @@
             selectedId: state.contents.length,
             contents: newContents,
           });
+        }
+
+        if (action.type === "DELETE") {
+          const newContents = [...state.contents];
+          newContents.splice(state.selectedId, 1);
+          newState = Object.assign({}, state, {
+            contents: newContents,
+            mode: "welcome",
+          });
+        }
+
+        if (action.type === "CHANGE_MODE") {
+          newState = Object.assign({}, state, { mode: action.mode });
         }
         console.log(action, state, newState);
         return newState;
@@ -97,9 +113,21 @@
       function control() {
         document.querySelector("#control").innerHTML = `
         <ul>
-            <li><a href="/create" onclick="event.preventDefault();">create</a></li>
-            <li><input type="button" value="delete" /></li>
-        </ul>
+        <li><a onclick="
+            event.preventDefault();
+            store.dispatch({
+                type:'CHANGE_MODE',
+                mode:'create'
+            })
+        " href="/create">create</a></li>
+        <li><input onclick="
+            store.dispatch({
+                type:'DELETE'
+            });
+        " type="button" value="delete"></li>
+    </ul>
+
+      
         `;
       }
 
@@ -107,6 +135,14 @@
         const state = store.getState();
         const mode = state.mode;
 
+        if (mode === "welcome") {
+          document.querySelector("#article").innerHTML = `
+            <article>
+                <h2>Welcome</h2>
+                <p>Hello Redux</p>
+            </article>
+        `;
+        }
         if (mode === "create") {
           document.querySelector("#article").innerHTML = `
             <article>
