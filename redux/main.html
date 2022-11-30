@@ -5,6 +5,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WEB</title>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.2.0/redux.min.js"
+      integrity="sha512-1/8Tj23BRrWnKZXeBruk6wTnsMJbi/lJsk9bsRgVwb6j5q39n0A00gFjbCTaDo5l5XrPVv4DZXftrJExhRF/Ug=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
   </head>
   <body>
     <div id="subject"></div>
@@ -13,6 +19,20 @@
     <div id="article"></div>
 
     <script>
+      function reducer(state, action) {
+        if (state === undefined) {
+          // initial state
+          return {
+            contents: [
+              { id: 1, title: "HTML", description: "HTML is..." },
+              { id: 2, title: "CSS", description: "CSS is..." },
+            ],
+          };
+        }
+      }
+      const store = Redux.createStore(reducer);
+      const state = store.getState();
+
       function subject() {
         document.querySelector("#subject").innerHTML = `
         <header>
@@ -23,15 +43,27 @@
       }
 
       function toc() {
+        let i = 0;
+        let liTags = "";
+        while (i < state.contents.length) {
+          liTags =
+            liTags +
+            `
+                <li>
+                    <a
+                    onclick="
+                    event.preventDefault();
+                    store.dispatch({type: 'SELECT', id:${state.contents[i].id}})
+                    "
+                     href="${state.contents[i].id}.html">${state.contents[i].title}</a>
+                </li>
+            `;
+          i = i + 1;
+        }
         document.querySelector("#toc").innerHTML = `
         <nav>
         <ol>
-            <li>
-            <a href="1.html">HTML</a>
-            </li>
-            <li>
-            <a href="2.html">CSS</a>
-            </li>
+           ${liTags}
         </ol>
         </nav>
         `;
